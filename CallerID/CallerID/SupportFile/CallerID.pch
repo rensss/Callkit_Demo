@@ -1,0 +1,27 @@
+//
+//  CallerID.pch
+//  CallerID
+//
+//  Created by Rzk on 2019/11/20.
+//  Copyright © 2019 Rzk. All rights reserved.
+//
+
+#ifndef CallerID_pch
+#define CallerID_pch
+
+#pragma mark - 常用三方库
+#import <MBProgressHUD/MBProgressHUD.h>
+#import <PureLayout/PureLayout.h>
+#import <YTKNetwork/YTKNetwork.h>
+#import <FMDB/FMDB.h>
+
+#pragma mark - 数据库表名
+
+
+
+#pragma mark - 常用类
+#import "FMDataBaseManager.h"
+#import "CallDirectoryHandler.h"
+#import "ContactModel.h"
+
+#endif /* CallerID_pch */

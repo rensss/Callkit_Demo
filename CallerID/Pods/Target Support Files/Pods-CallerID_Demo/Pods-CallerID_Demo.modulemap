@@ -1,0 +1,6 @@
+framework module Pods_CallerID_Demo {
+  umbrella header "Pods-CallerID_Demo-umbrella.h"
+
+  export *
+  module * { export * }
+}
