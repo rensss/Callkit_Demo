@@ -124,14 +124,13 @@ typedef enum : NSUInteger {
     [manager reloadExtensionWithIdentifier:kExtensionIdentifier completionHandler:^(NSError * _Nullable error) {
         
         NSTimeInterval interval_end = [[NSDate date] timeIntervalSince1970];
-        NSString * check = @"please try again or check the perrmission";
         NSString * time = [NSString stringWithFormat:@"spend time: %.1f s", interval_end-interval_begin];
         NSString * title = !error ? @"Update Succeed √" : @"Update Failed X";
-        NSString * message = (manage == IDNumberManageAdd || manage == IDNumberManageDelete) ?
-        [NSString stringWithFormat:@"> %@ <\n%@", @"ID Contacts", time] :
-        [NSString stringWithFormat:@"> %@ <\n%@", @"Block Contacts", time];
+        NSString * message = (manage == IDNumberManageAdd || manage == IDNumberManageDelete) ? [NSString stringWithFormat:@"> %@ <\n%@", @"ID Contacts", time] : [NSString stringWithFormat:@"> %@ <\n%@", @"Block Contacts", time];
         
         dispatch_async(dispatch_get_main_queue(), ^{
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+            [alert show];
             
             if (!error && block) {
                 block(YES);
