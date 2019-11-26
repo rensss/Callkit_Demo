@@ -255,6 +255,13 @@
     [self.view endEditing:YES];
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     
+    ContactModel *model = self.dataArray[indexPath.section][indexPath.row];
+    self.numberTextField.text = model.phoneNumber;
+    if (model.identification.length > 0) {
+        self.identifyTextField.text = model.identification;
+    } else {
+        self.identifyTextField.text = @"";
+    }
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
@@ -293,6 +300,8 @@
     cell.textLabel.text = [NSString stringWithFormat:@"phone: %@",contact.phoneNumber];
     if (indexPath.section == 1) {
         cell.detailTextLabel.text = [NSString stringWithFormat:@"Identify: %@",contact.identification];
+    } else {
+        cell.detailTextLabel.text = @"";
     }
     
     return cell;
