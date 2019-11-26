@@ -10,7 +10,7 @@
 #import "CallDirectoryHandler.h"
 #import <ContactsUI/ContactsUI.h>
 
-@interface ViewController ()
+@interface ViewController () <UITableViewDelegate,UITableViewDataSource>
 
 @property (nonatomic, strong) UITextField *numberTextField; /**< 号码输入*/
 @property (nonatomic, strong) UITextField *identifyTextField; /**< 标识*/
@@ -22,6 +22,7 @@
 @property (nonatomic, strong) UIButton *removeIdentityBtn; /**< 移除标记*/
 
 @property (nonatomic, strong) UITableView *tableView; /**< 列表*/
+@property (nonatomic, strong) NSMutableArray *dataArray; /**< 数据源*/
 
 @end
 
@@ -31,6 +32,8 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor whiteColor];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didReceiveUpdateUINotification) name:kUpdateUINotification object:nil];
     
     if (@available(iOS 13.0, *)) {
         self.view.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
@@ -67,6 +70,10 @@
     [self.removeIdentityBtn autoSetDimensionsToSize:CGSizeMake(130, 35)];
     [self.removeIdentityBtn autoAlignAxis:ALAxisHorizontal toSameAxisOfView:self.addIdentityBtn];
     [self.removeIdentityBtn autoPinEdge:ALEdgeLeft toEdge:ALEdgeRight ofView:self.addIdentityBtn withOffset:15];
+    
+    [self.view addSubview:self.tableView];
+    [self.tableView autoPinEdgesToSuperviewMarginsExcludingEdge:ALEdgeTop];
+    [self.tableView autoPinEdge:ALEdgeTop toEdge:ALEdgeBottom ofView:self.addIdentityBtn withOffset:15];
 }
 
 #pragma mark - func
@@ -126,13 +133,13 @@
 //    }];
 //
 //    return;
-    
     NSLog(@"---- add Number:%@",self.numberTextField.text);
     if (self.numberTextField.text.length <= 0) {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"请填写blockNumber" message:nil delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
         [alert show];
         return ;
     }
+    [self.view endEditing:YES];
     ContactModel *model = [ContactModel new];
     model.phoneNumber = self.numberTextField.text;
     [[FMDataBaseManager shareInstance] updateContact:model toTable:kUserBlockTabel with:^(BOOL result) {
@@ -157,6 +164,7 @@
         [alert show];
         return ;
     }
+    [self.view endEditing:YES];
     ContactModel *model = [ContactModel new];
     model.phoneNumber = self.numberTextField.text;
     [[FMDataBaseManager shareInstance] removeContact:model inTable:kUserBlockTabel with:^(BOOL result) {
@@ -187,6 +195,7 @@
         [alert show];
         return ;
     }
+    [self.view endEditing:YES];
     ContactModel *model = [ContactModel new];
     model.phoneNumber = self.numberTextField.text;
     model.identification = self.identifyTextField.text;
@@ -212,6 +221,7 @@
         [alert show];
         return ;
     }
+    [self.view endEditing:YES];
     ContactModel *model = [ContactModel new];
     model.phoneNumber = self.numberTextField.text;
     [[FMDataBaseManager shareInstance] removeContact:model inTable:kUserIdentifyTabel with:^(BOOL result) {
@@ -229,12 +239,65 @@
     }];
 }
 
+#pragma mark - 通知
+- (void)didReceiveUpdateUINotification {
+    self.dataArray = nil;
+    [self.tableView reloadData];
+}
+
 #pragma mark - 代理
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
     [self.view endEditing:YES];
 }
 
-#pragma mark - setting
+#pragma mark -- UITableViewDelegate
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [self.view endEditing:YES];
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    
+}
+
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+    if (section == 0) {
+        return @"Block";
+    } else {
+        return @"Identify";
+    }
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    return 30;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+    return 0.01f;
+}
+
+#pragma mark -- UITableViewDataSource
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return self.dataArray.count;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return [self.dataArray[section] count];
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UITableViewCell"];
+    
+    if (!cell) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"UITableViewCell"];
+    }
+    
+    ContactModel *contact = self.dataArray[indexPath.section][indexPath.row];
+    cell.textLabel.text = [NSString stringWithFormat:@"phone: %@",contact.phoneNumber];
+    if (indexPath.section == 1) {
+        cell.detailTextLabel.text = [NSString stringWithFormat:@"Identify: %@",contact.identification];
+    }
+    
+    return cell;
+}
+
 
 #pragma mark - getting
 - (UITextField *)numberTextField {
@@ -310,9 +373,28 @@
 
 - (UITableView *)tableView {
     if (!_tableView) {
-        _tableView = [[UITableView alloc] init];
+        _tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleGrouped];
+        
+        _tableView.delegate = self;
+        _tableView.dataSource = self;
+        
+        _tableView.tableFooterView = [[UIView alloc] init];
+        _tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     }
     return _tableView;
+}
+
+- (NSMutableArray *)dataArray {
+    if (!_dataArray) {
+        _dataArray = [[NSMutableArray alloc] init];
+        
+        NSArray *blockContacts = [[FMDataBaseManager shareInstance] getAllContacts:kUserBlockTabel];
+        NSArray *identifyContacts = [[FMDataBaseManager shareInstance] getAllContacts:kUserIdentifyTabel];
+        
+        [_dataArray addObject:blockContacts];
+        [_dataArray addObject:identifyContacts];
+    }
+    return _dataArray;
 }
 
 @end

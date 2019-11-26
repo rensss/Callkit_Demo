@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 #import "ContactModel.h"
 
+#define kUpdateUINotification @"updateTableView"
+
 @interface CallDirectoryHandler : NSObject
 
 + (instancetype)shared;

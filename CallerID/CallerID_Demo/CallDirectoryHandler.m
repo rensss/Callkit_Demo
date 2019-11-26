@@ -72,6 +72,8 @@
 //        [context addBlockingEntryWithNextSequentialPhoneNumber:phoneNumber];
 //    }
     
+    [context removeAllBlockingEntries];
+    
     NSArray * contacts = [[FMDataBaseManager shareInstance] getAllContacts:kUserBlockTabel];
     for (int i= 0; i < contacts.count; i ++) {
         @autoreleasepool {
@@ -119,6 +121,8 @@
     /*检索对电话号码集的任何更改，以从数据存储区进行识别（及其识别标签）。
      为了在有多个电话号码时获得最佳性能和内存使用，请考虑在给定时间仅加载数字子集，并使用自动释放池释放在加载的每一批号码期间分配的对象。
      */
+    
+    [context removeAllIdentificationEntries];
     
     NSArray * contacts = [[FMDataBaseManager shareInstance] getAllContacts:kUserIdentifyTabel];
     for (int i= 0; i < contacts.count; i ++) {

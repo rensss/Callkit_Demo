@@ -133,6 +133,7 @@ typedef enum : NSUInteger {
             [alert show];
             
             if (!error && block) {
+                [[NSNotificationCenter defaultCenter] postNotificationName:kUpdateUINotification object:nil];
                 block(YES);
             } else {
                 if (block) block(NO);
