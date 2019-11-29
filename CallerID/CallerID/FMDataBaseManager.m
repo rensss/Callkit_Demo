@@ -57,6 +57,9 @@
 
 - (NSArray *)getAllContacts:(NSString *)table {
     NSMutableArray *allUsers = [NSMutableArray new];
+    
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+
     [self.dbQueue inDatabase:^(FMDatabase *db) {
         NSString *sql = [NSString stringWithFormat:@"SELECT * FROM %@ ORDER BY phoneNumber ASC", table];
         FMResultSet *rs = [db executeQuery:sql];
@@ -67,7 +70,11 @@
             [allUsers addObject:model];
         }
         [rs close];
+        dispatch_semaphore_signal(sema);
     }];
+    
+    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+
     return allUsers;
 }
 
